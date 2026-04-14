@@ -312,9 +312,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="contact-content">
             <div class="contact-info">
                 <h3>Store Information</h3>
-                <p><strong>Address:</strong> 123 Grocery Street, City, Country</p>
-                <p><strong>Phone:</strong> +1 (234) 567-8900</p>
-                <p><strong>Email:</strong> info@freshgrocer.com</p>
+                <p><strong>Address:</strong> 13 Grocery Zero No , Patna, India</p>
+                <p><strong>Phone:</strong> +91 9608783528</p>
+                <p><strong>Email:</strong> workshopit26@gmail.com</p>
                 <p><strong>Hours:</strong> Mon-Sat: 8AM-10PM, Sun: 9AM-8PM</p>
             </div>
 

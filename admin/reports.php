@@ -70,18 +70,17 @@ switch($period) {
         $start_date = date('Y-m-01');
         $end_date = $today;
 }
-
 // SALES REPORTS 
 
 // Total Sales for selected period
 $result = safeQuery($conn, "
     SELECT 
         COUNT(*) as total_orders,
-        SUM(total_amount) as total_revenue,
-        AVG(total_amount) as avg_order_value,
+        SUM(total_price) as total_revenue,
+        AVG(total_price) as avg_order_value,
         COUNT(DISTINCT user_id) as unique_customers
     FROM orders 
-    WHERE status = 'completed' 
+    WHERE payment_status = 'completed' 
     AND DATE(order_date) BETWEEN '$start_date' AND '$end_date'
 ");
 $sales_stats = $result ? mysqli_fetch_assoc($result) : [];
@@ -91,9 +90,9 @@ $daily_sales = safeQuery($conn, "
     SELECT 
         DATE(order_date) as sale_date,
         COUNT(*) as orders_count,
-        SUM(total_amount) as daily_revenue
+        SUM(total_price) as daily_revenue
     FROM orders 
-    WHERE status = 'completed' 
+    WHERE payment_status = 'completed' 
     AND order_date >= DATE_SUB('$today', INTERVAL 30 DAY)
     GROUP BY DATE(order_date)
     ORDER BY sale_date ASC
@@ -104,9 +103,9 @@ $monthly_sales = safeQuery($conn, "
     SELECT 
         DATE_FORMAT(order_date, '%Y-%m') as month,
         COUNT(*) as orders,
-        SUM(total_amount) as revenue
+        SUM(total_price) as revenue
     FROM orders 
-    WHERE status = 'completed'
+    WHERE payment_status = 'completed'
     AND order_date >= DATE_SUB('$today', INTERVAL 12 MONTH)
     GROUP BY DATE_FORMAT(order_date, '%Y-%m')
     ORDER BY month ASC
@@ -122,14 +121,14 @@ $top_products = safeQuery($conn, "
         p.price,
         c.name as category,
         SUM(oi.quantity) as total_sold,
-        SUM(oi.quantity * p.price) as revenue,
+        SUM(oi.quantity * product_price) as revenue,
         p.stock
     FROM order_items oi
     JOIN products p ON oi.product_id = p.id
     JOIN orders o ON oi.order_id = o.id
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE o.status = 'completed'
-    AND o.order_date BETWEEN '$start_date' AND '$end_date'
+    WHERE o.payment_status = 'completed'
+    AND o.order_date BETWEEN '$start_date' AND '$end_date'    
     GROUP BY p.id
     ORDER BY total_sold DESC
     LIMIT 10
@@ -146,7 +145,7 @@ $category_sales = safeQuery($conn, "
     FROM categories c
     LEFT JOIN products p ON c.id = p.category_id
     LEFT JOIN order_items oi ON p.id = oi.product_id
-    LEFT JOIN orders o ON oi.order_id = o.id AND o.status = 'completed'
+    LEFT JOIN orders o ON oi.order_id = o.id AND o.payment_status = 'completed'
     WHERE (o.order_date BETWEEN '$start_date' AND '$end_date' OR o.id IS NULL)
     GROUP BY c.id
     ORDER BY revenue DESC
@@ -161,11 +160,11 @@ $top_customers = safeQuery($conn, "
         u.name,
         u.email,
         COUNT(o.id) as orders_count,
-        SUM(o.total_amount) as total_spent,
+        SUM(o.total_price) as total_spent,
         MAX(o.order_date) as last_order
     FROM users u
-    LEFT JOIN orders o ON u.id = o.user_id AND o.status = 'completed'
-    WHERE o.order_date BETWEEN '$start_date' AND '$end_date' OR o.id IS NULL
+    LEFT JOIN orders o ON u.id = o.user_id AND o.payment_status = 'completed'
+    WHERE (o.order_date BETWEEN '$start_date' AND '$end_date' OR o.id IS NULL)
     GROUP BY u.id
     HAVING orders_count > 0
     ORDER BY total_spent DESC
@@ -943,30 +942,6 @@ if(isset($_GET['export'])) {
                 <div class="stat-period">Active customers</div>
             </div>
         </div>
-
-        <!-- Charts Section -->
-        <div class="charts-section">
-            <!-- Sales Chart -->
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3>Sales Trend (Last 30 Days)</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="salesChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Category Distribution -->
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3>Category Performance</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-        </div>
-
         <!-- Data Tables Section -->
         <div class="data-section">
             <!-- Top Products -->

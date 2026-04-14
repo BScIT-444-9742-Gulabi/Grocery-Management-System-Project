@@ -1,646 +1,919 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once 'config/database.php';
+
+// Get all page content from database
+$query = "SELECT section_key, content, content_type FROM page_content WHERE page_name = 'about'";
+$result = $conn->query($query);
+$page_content = [];
+while ($row = $result->fetch_assoc()) {
+    $page_content[$row['section_key']] = [
+        'content' => $row['content'],
+        'type' => $row['content_type']
+    ];
+}
+
+// Get features from database
+$features_query = "SELECT * FROM features WHERE is_active = 1 ORDER BY display_order ASC";
+$features_result = $conn->query($features_query);
+$features = [];
+while ($row = $features_result->fetch_assoc()) {
+    $features[] = $row;
+}
+
+// Get team members from database
+$team_query = "SELECT * FROM team_members WHERE is_active = 1 ORDER BY display_order ASC";
+$team_result = $conn->query($team_query);
+$team_members = [];
+while ($row = $team_result->fetch_assoc()) {
+    $team_members[] = $row;
+}
+
+// Get testimonials from database
+$testimonials_query = "SELECT * FROM testimonials WHERE is_active = 1 ORDER BY display_order ASC";
+$testimonials_result = $conn->query($testimonials_query);
+$testimonials = [];
+while ($row = $testimonials_result->fetch_assoc()) {
+    $testimonials[] = $row;
+}
+
+// Helper function to get content
+function getContent($key, $default = '')
+{
+    global $page_content;
+    if (isset($page_content[$key])) {
+        if ($page_content[$key]['type'] == 'html') {
+            return $page_content[$key]['content'];
+        }
+        return htmlspecialchars($page_content[$key]['content']);
+    }
+    return $default;
+}
+?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>About Us - FreshGrocer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo getContent('hero_title', 'About Us'); ?> - FreshGrocer</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #333;
-        background-color: #ffffff;
-        margin: 0;
-        padding: 0;
-        line-height: 1.6;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #111827;
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-    }
-
-    p {
-        margin-bottom: 1rem;
-        font-size: 15px;
-        color: #6b7280;
-    }
-
-    ul {
-        padding-left: 20px;
-        margin-bottom: 1rem;
-    }
-
-    li {
-        margin-bottom: 0.5rem;
-        color: #6b7280;
-    }
-
-    .about-container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .page-header {
-        text-align: center;
-        padding: 40px 20px;
-        background: #ffffff;
-        border-radius: 10px;
-        color: #111827;
-        margin-bottom: 40px;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    }
-
-    .page-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #6b7280, #9ca3af, #d1d5db);
-    }
-
-    .page-header h1 {
-        font-size: 36px;
-        margin-bottom: 15px;
-        color: #111827;
-        position: relative;
-    }
-
-    .page-header p {
-        font-size: 18px;
-        max-width: 700px;
-        margin: 0 auto;
-        color: #6b7280;
-        position: relative;
-    }
-
-    .about-hero {
-        display: flex;
-        align-items: center;
-        gap: 40px;
-        margin-bottom: 50px;
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid #e5e7eb;
-    }
-
-    .hero-content {
-        flex: 1;
-    }
-
-    .hero-image {
-        flex: 1;
-        text-align: center;
-    }
-
-    .hero-image img {
-        max-width: 100%;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-bottom: 50px;
-    }
-
-    .feature-card {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #e5e7eb;
-        border-top: 4px solid #6b7280;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        border-color: #d1d5db;
-    }
-
-    .feature-icon {
-        font-size: 40px;
-        color: #6b7280;
-        margin-bottom: 20px;
-        height: 80px;
-        width: 80px;
-        line-height: 80px;
-        background: #f9fafb;
-        border-radius: 50%;
-        margin: 0 auto 20px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .feature-card h3 {
-        font-size: 20px;
-        margin-bottom: 15px;
-        color: #111827;
-    }
-
-    .feature-card p {
-        color: #6b7280;
-    }
-
-    .stats-section {
-        background: #ffffff;
-        color: #111827;
-        padding: 60px 40px;
-        border-radius: 10px;
-        margin-bottom: 50px;
-        text-align: center;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-    }
-
-    .stats-section h2 {
-        color: #111827;
-        margin-bottom: 40px;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 30px;
-    }
-
-    .stat-item {
-        padding: 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: #f9fafb;
-    }
-
-    .stat-item h2 {
-        font-size: 40px;
-        color: #111827;
-        margin-bottom: 10px;
-        font-weight: 700;
-    }
-
-    .stat-item p {
-        color: #6b7280;
-        font-size: 16px;
-    }
-
-    .team-section {
-        margin-bottom: 50px;
-        background: white;
-        padding: 40px;
-        border-radius: 10px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-    }
-
-    .team-section h2 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 40px;
-        color: #111827;
-    }
-
-    .team-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-    }
-
-    .team-member {
-        background: #f9fafb;
-        padding: 25px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-        transition: transform 0.3s ease;
-        border: 1px solid #e5e7eb;
-    }
-
-    .team-member:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    }
-
-    .member-photo {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: #ffffff;
-        margin: 0 auto 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-        color: #6b7280;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .team-member h3 {
-        font-size: 18px;
-        margin-bottom: 5px;
-        color: #111827;
-    }
-
-    .team-member p {
-        color: #6b7280;
-        font-size: 14px;
-        margin-bottom: 15px;
-    }
-
-    .testimonials {
-        background: #ffffff;
-        padding: 50px 40px;
-        border-radius: 10px;
-        margin-bottom: 50px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-    }
-
-    .testimonials h2 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 40px;
-        color: #111827;
-    }
-
-    .testimonial-slider {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .testimonial-item {
-        background: #f9fafb;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-        margin: 0 10px;
-        text-align: center;
-        border: 1px solid #e5e7eb;
-    }
-
-    .testimonial-text {
-        font-size: 16px;
-        font-style: italic;
-        color: #6b7280;
-        margin-bottom: 20px;
-        position: relative;
-        line-height: 1.7;
-    }
-
-    .testimonial-text::before,
-    .testimonial-text::after {
-        content: '"';
-        color: #9ca3af;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    .testimonial-author {
-        font-weight: 600;
-        color: #111827;
-        margin-bottom: 5px;
-    }
-
-    .testimonial-role {
-        color: #9ca3af;
-        font-size: 14px;
-    }
-
-    .cta-section {
-        text-align: center;
-        padding: 50px 40px;
-        background: #ffffff;
-        border-radius: 10px;
-        color: #111827;
-        margin-bottom: 40px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-    }
-
-    .cta-section h2 {
-        color: #111827;
-        font-size: 32px;
-        margin-bottom: 20px;
-    }
-
-    .cta-section p {
-        color: #6b7280;
-        font-size: 18px;
-        max-width: 700px;
-        margin: 0 auto 30px;
-    }
-
-    .cta-button {
-        display: inline-block;
-        background: #6b7280;
-        color: #ffffff;
-        padding: 12px 30px;
-        border-radius: 5px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: 1px solid #6b7280;
-    }
-
-    .cta-button:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    @media (max-width: 768px) {
-        .page-header {
-            padding: 30px 15px;
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .page-header h1 {
-            font-size: 28px;
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
         }
-        
-        .page-header p {
+
+        /* Modern Container */
+        .about-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(105deg, #1e293b 0%, #334155 50%, #475569 100%);
+            border-radius: 48px;
+            padding: 100px 48px;
+            margin-bottom: 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: movePattern 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+
+        @keyframes movePattern {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        .hero-section h1 {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: white;
+            position: relative;
+            animation: fadeInUp 0.8s ease;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-section p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            color: #cbd5e1;
+            position: relative;
+            animation: fadeInUp 0.8s ease 0.2s both;
+            line-height: 1.7;
+        }
+
+        /* Story Section */
+        .story-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            background: white;
+            border-radius: 40px;
+            padding: 60px;
+            margin-bottom: 80px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        .story-section:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .story-content h2 {
+            font-size: 42px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .story-content p {
+            color: #475569;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .story-image {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .story-image:hover {
+            transform: scale(1.02);
+        }
+
+        .story-image i {
+            font-size: 140px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Features Section */
+        .features-section {
+            margin-bottom: 80px;
+        }
+
+        .features-section h2 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 32px;
+            border-radius: 28px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 40px -12px rgba(0, 0, 0, 0.15);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .feature-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-icon i {
+            font-size: 44px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 48px;
+            padding: 70px 48px;
+            margin-bottom: 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .stats-section h2 {
+            color: white;
+            font-size: 48px;
+            margin-bottom: 60px;
+            position: relative;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            position: relative;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            padding: 32px 24px;
+            border-radius: 28px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 52px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #cbd5e1;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Team Section */
+        .team-section {
+            margin-bottom: 80px;
+        }
+
+        .team-section h2 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        .team-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-photo {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-photo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .team-card:hover .team-photo::before {
+            left: 100%;
+        }
+
+        .team-photo i {
+            font-size: 90px;
+            color: white;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .team-card h3 {
+            font-size: 24px;
+            margin: 24px 0 8px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .team-position {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .team-bio {
+            color: #64748b;
+            padding: 0 24px 28px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Testimonials Section */
+        .testimonials-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 48px;
+            padding: 70px 48px;
+            margin-bottom: 80px;
+        }
+
+        .testimonials-section h2 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
+        }
+
+        .testimonial-card {
+            background: white;
+            padding: 36px;
+            border-radius: 28px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            border: 1px solid #e2e8f0;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 40px -12px rgba(0, 0, 0, 0.12);
+            border-color: #cbd5e1;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            font-size: 100px;
+            position: absolute;
+            top: 20px;
+            left: 24px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: Georgia, serif;
+            opacity: 0.15;
+            font-weight: bold;
+        }
+
+        .rating {
+            color: #fbbf24;
+            margin-bottom: 20px;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-text {
+            color: #334155;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+            font-size: 15px;
+        }
+
+        .testimonial-author {
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 8px;
             font-size: 16px;
         }
-        
-        .about-hero {
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-        }
-        
-        .features-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .team-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .testimonials {
-            padding: 30px 20px;
-        }
-        
-        .cta-section {
-            padding: 30px 20px;
-        }
-        
-        .cta-section h2 {
-            font-size: 24px;
-        }
-        
-        .team-section,
-        .stats-section,
-        .testimonials,
-        .cta-section {
-            padding: 30px 20px;
-        }
-    }
 
-    @media (max-width: 480px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
+        .testimonial-role {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 4px;
         }
-        
-        .team-grid {
-            grid-template-columns: 1fr;
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 48px;
+            padding: 80px 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-        
-        .feature-card {
-            padding: 20px;
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+            animation: rotate 25s linear infinite;
         }
-        
-        .team-member {
-            padding: 20px;
+
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -30%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+            animation: rotateReverse 30s linear infinite;
         }
-        
-        .stat-item h2 {
-            font-size: 32px;
+
+        @keyframes rotateReverse {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(-360deg);
+            }
         }
-        
-        .page-header h1 {
-            font-size: 24px;
+
+        .cta-section h2 {
+            color: white;
+            font-size: 52px;
+            margin-bottom: 20px;
+            position: relative;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
-        
-        .page-header p {
-            font-size: 14px;
+
+        .cta-section p {
+            color: #cbd5e1;
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto 32px;
+            position: relative;
+            line-height: 1.7;
         }
-    }
-</style>
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #1e293b;
+            padding: 16px 48px;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .about-container {
+                padding: 40px 20px;
+            }
+
+            .hero-section h1 {
+                font-size: 48px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 32px;
+            }
+
+            .hero-section h1 {
+                font-size: 36px;
+            }
+
+            .hero-section p {
+                font-size: 16px;
+            }
+
+            .story-section {
+                grid-template-columns: 1fr;
+                padding: 40px 32px;
+                gap: 40px;
+            }
+
+            .story-content h2 {
+                font-size: 32px;
+            }
+
+            .features-section h2,
+            .stats-section h2,
+            .team-section h2,
+            .testimonials-section h2,
+            .cta-section h2 {
+                font-size: 36px;
+            }
+
+            .stats-section {
+                padding: 50px 32px;
+            }
+
+            .testimonials-section {
+                padding: 50px 32px;
+            }
+
+            .cta-section {
+                padding: 60px 32px;
+            }
+
+            .cta-section h2 {
+                font-size: 36px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .stat-number {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid,
+            .team-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                padding: 40px 24px;
+            }
+
+            .hero-section h1 {
+                font-size: 32px;
+            }
+
+            .story-section {
+                padding: 32px 24px;
+            }
+
+            .feature-card {
+                padding: 32px 24px;
+            }
+
+            .testimonial-card {
+                padding: 28px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .about-container {
+                padding: 30px 16px;
+            }
+
+            .hero-section h1 {
+                font-size: 28px;
+            }
+
+            .features-section h2,
+            .stats-section h2,
+            .team-section h2,
+            .testimonials-section h2,
+            .cta-section h2 {
+                font-size: 28px;
+            }
+
+            .stat-number {
+                font-size: 32px;
+            }
+
+            .cta-button {
+                padding: 14px 36px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
 
 <body>
     <?php include 'includes/header.php'; ?>
 
     <div class="about-container">
-        <div class="page-header">
-            <h1>About FreshGrocer</h1>
-            <p>Your trusted partner for fresh groceries delivered to your doorstep. Quality, freshness, and convenience since 2020.</p>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1><?php echo getContent('hero_title', 'About FreshGrocer'); ?></h1>
+            <p><?php echo getContent('hero_subtitle', 'Your trusted partner for fresh groceries'); ?></p>
         </div>
 
-        <div class="about-hero">
-            <div class="hero-content">
-                <h2>Our Story</h2>
-                <p>FreshGrocer started in 2020 with a simple yet powerful vision: to revolutionize the way people shop for groceries. What began as a small local delivery service has grown into a trusted name in the community, serving thousands of happy customers.</p>
-                <p>Our founders, passionate about fresh food and community health, saw an opportunity to bridge the gap between local farmers and urban consumers. Today, we're proud to continue that mission while embracing innovation and sustainability.</p>
+        <!-- Story Section -->
+        <div class="story-section">
+            <div class="story-content">
+                <h2><?php echo getContent('story_title', 'Our Story'); ?></h2>
+                <?php echo getContent('story_content', '<p>FreshGrocer started in 2020 with a simple yet powerful vision: to revolutionize the way people shop for groceries.</p>'); ?>
             </div>
-            <div class="hero-image">
-                <div style="background: #f9fafb; padding: 40px; border-radius: 10px; height: 300px; display: flex; align-items: center; justify-content: center; color: #6b7280; border: 1px solid #e5e7eb;">
-                    <i class="fas fa-leaf" style="font-size: 100px; opacity: 0.7;"></i>
-                </div>
+            <div class="story-image">
+                <i class="fas fa-seedling"></i>
             </div>
         </div>
 
         <!-- Features Section -->
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-seedling"></i>
-                </div>
-                <h3>Farm Fresh</h3>
-                <p>Direct partnerships with local farmers ensure you get the freshest produce possible, often harvested just hours before delivery.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <h3>Fast Delivery</h3>
-                <p>Get your groceries delivered within 2 hours. We prioritize speed without compromising on quality or freshness.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-award"></i>
-                </div>
-                <h3>Quality Guarantee</h3>
-                <p>Every product is carefully selected and inspected. If you're not satisfied, we'll replace it or refund your money.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-hand-holding-heart"></i>
-                </div>
-                <h3>Community Focus</h3>
-                <p>We support local farmers and producers, contributing to sustainable agriculture and the local economy.</p>
-            </div>
-        </div>
-
-        <!-- Statistics Section -->
-        <div class="stats-section">
-            <h2>Our Impact in Numbers</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <h2>10,000+</h2>
-                    <p>Happy Customers</p>
-                </div>
-                <div class="stat-item">
-                    <h2>50+</h2>
-                    <p>Local Farms Partnered</p>
-                </div>
-                <div class="stat-item">
-                    <h2>99%</h2>
-                    <p>Customer Satisfaction</p>
-                </div>
-                <div class="stat-item">
-                    <h2>24/7</h2>
-                    <p>Customer Support</p>
+        <?php if (count($features) > 0): ?>
+            <div class="features-section">
+                <h2><?php echo getContent('features_title', 'Why Choose Us'); ?></h2>
+                <div class="features-grid">
+                    <?php foreach ($features as $feature): ?>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas <?php echo htmlspecialchars($feature['icon']); ?>"></i>
+                            </div>
+                            <h3><?php echo htmlspecialchars($feature['title']); ?></h3>
+                            <p><?php echo htmlspecialchars($feature['description']); ?></p>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        </div>
-
+        <?php endif; ?>
         <!-- Team Section -->
-        <div class="team-section">
-            <h2>Meet Our Leadership Team</h2>
-            <div class="team-grid">
-                <div class="team-member">
-                    <div class="member-photo">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h3>Gulabi kumar</h3>
-                    <p>Founder & CEO</p>
-                    <p>10+ years in retail management</p>
-                </div>
-
-                <div class="team-member">
-                    <div class="member-photo">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h3>Aman kumar</h3>
-                    <p>Head of Operations</p>
-                    <p>Supply chain expert</p>
-                </div>
-
-                <div class="team-member">
-                    <div class="member-photo">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h3>Raj</h3>
-                    <p>Quality Control Director</p>
-                    <p>Former food safety inspector</p>
-                </div>
-
-                <div class="team-member">
-                    <div class="member-photo">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h3>Rohit kumar</h3>
-                    <p>Customer Experience</p>
-                    <p>Customer service champion</p>
+        <?php if (count($team_members) > 0): ?>
+            <div class="team-section">
+                <h2><?php echo getContent('team_title', 'Meet Our Leadership Team'); ?></h2>
+                <div class="team-grid">
+                    <?php foreach ($team_members as $member): ?>
+                        <div class="team-card">
+                            <div class="team-photo">
+                                <?php if ($member['photo_url']): ?>
+                                    <img src="<?php echo htmlspecialchars($member['photo_url']); ?>" alt="<?php echo htmlspecialchars($member['name']); ?>" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+                                <?php else: ?>
+                                    <i class="fas fa-user-circle"></i>
+                                <?php endif; ?>
+                            </div>
+                            <h3><?php echo htmlspecialchars($member['name']); ?></h3>
+                            <div class="team-position"><?php echo htmlspecialchars($member['position']); ?></div>
+                            <div class="team-bio"><?php echo htmlspecialchars($member['bio']); ?></div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
 
-        <!-- Testimonials -->
-        <div class="testimonials">
-            <h2>What Our Customers Say</h2>
-            <div class="testimonial-slider">
-                <div class="testimonial-item">
-                    <div class="testimonial-text">
-                        FreshGrocer has changed how I shop for groceries. The quality is consistently excellent and delivery is always on time. Highly recommended!
-                    </div>
-                    <div class="testimonial-author">Priya Sharma</div>
-                    <div class="testimonial-role">Regular Customer for 2 years</div>
+        <!-- Testimonials Section -->
+        <?php if (count($testimonials) > 0): ?>
+            <div class="testimonials-section">
+                <h2><?php echo getContent('testimonials_title', 'What Our Customers Say'); ?></h2>
+                <div class="testimonials-grid">
+                    <?php foreach ($testimonials as $testimonial): ?>
+                        <div class="testimonial-card">
+                            <div class="rating">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <?php if ($i <= $testimonial['rating']): ?>
+                                        <i class="fas fa-star"></i>
+                                    <?php else: ?>
+                                        <i class="far fa-star"></i>
+                                    <?php endif; ?>
+                                <?php endfor; ?>
+                            </div>
+                            <div class="testimonial-text"><?php echo htmlspecialchars($testimonial['content']); ?></div>
+                            <div class="testimonial-author"><?php echo htmlspecialchars($testimonial['customer_name']); ?></div>
+                            <div class="testimonial-role"><?php echo htmlspecialchars($testimonial['customer_role']); ?></div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
 
-        <!-- Call to Action -->
+        <!-- CTA Section -->
         <div class="cta-section">
-            <h2>Join Our Fresh Community</h2>
-            <p>Experience the convenience of fresh groceries delivered to your doorstep. Sign up today and get 20% off your first order!</p>
-            <a href="register.php" class="cta-button">Get Started Now</a>
+            <h2><?php echo getContent('cta_title', 'Join Our Fresh Community'); ?></h2>
+            <?php echo getContent('cta_content', '<p>Experience the convenience of fresh groceries delivered to your doorstep.</p>'); ?>
+            <a href="http://localhost:9090/Groceryproject/pages/register.php" class="cta-button"><?php echo getContent('cta_button_text', 'Get Started Now'); ?></a>
         </div>
     </div>
 
     <?php include 'includes/footer.php'; ?>
-
-    <script>
-        // Simple testimonial slider
-        document.addEventListener('DOMContentLoaded', function() {
-            const testimonials = [
-                {
-                    text: "FreshGrocer has changed how I shop for groceries. The quality is consistently excellent and delivery is always on time. Highly recommended!",
-                    author: "Priya Sharma",
-                    role: "Regular Customer for 2 years"
-                },
-                {
-                    text: "As a working professional, FreshGrocer saves me hours every week. The produce is fresher than what I find at supermarkets.",
-                    author: "Sumit kumar",
-                    role: "Customer for 1 year"
-                },
-                {
-                    text: "I love supporting local farmers through FreshGrocer. Knowing where my food comes from gives me peace of mind.",
-                    author: "Ajay kumar",
-                    role: "Health Conscious Customer"
-                }
-            ];
-
-            let currentTestimonial = 0;
-            const testimonialContainer = document.querySelector('.testimonial-item');
-
-            function rotateTestimonial() {
-                currentTestimonial = (currentTestimonial + 1) % testimonials.length;
-                const testimonial = testimonials[currentTestimonial];
-                
-                testimonialContainer.innerHTML = `
-                    <div class="testimonial-text">${testimonial.text}</div>
-                    <div class="testimonial-author">${testimonial.author}</div>
-                    <div class="testimonial-role">${testimonial.role}</div>
-                `;
-                
-                // Add fade animation
-                testimonialContainer.style.opacity = '0';
-                setTimeout(() => {
-                    testimonialContainer.style.opacity = '1';
-                }, 300);
-            }
-
-            // Rotate testimonials every 5 seconds
-            setInterval(rotateTestimonial, 5000);
-        });
-    </script>
 </body>
 
 </html>

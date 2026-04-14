@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$subtotal=$_SESSION['total'];
 
 // Get user info
 $user_query = mysqli_query($conn, "SELECT * FROM users WHERE id = $user_id");
@@ -30,22 +31,16 @@ $cart_result = mysqli_query($conn, $cart_query);
 if (!$cart_result) {
     die("Database error: " . mysqli_error($conn));
 }
-
-// Calculate amounts
-$subtotal = 0;
-$product_subtotal=0;
 $cart_items = [];
 $product_order_items= [];
 while ($item = mysqli_fetch_assoc($cart_result)) {
     $cart_items[] = $item;
-    $subtotal += $item['price'] * $item['quantity'];
+    
 
     $product_order_items[] = [
         'id' => $item['product_id'],
-        'product_name' => $item['name'],    
-        'product_price' => $item['price'],
-        'product_subtotal' => $item['price'] * $item['quantity'],
-        'product_quantity'=>$item['quantity'],   
+        'product_name' => $item['name'],   
+        'product_price'=>$item['price'],   
     ];
 }
 
@@ -78,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['checkout_step']) && $_
         $_SESSION['checkout_products'] = $product_order_items;
         $_SESSION['checkout_data'] = [
             'user_id' => $user_id,
+            'email'=>$user['email'],
             'address' => $address,
             'city' => $city,
             'state' => $state,
@@ -113,6 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['checkout_step']) && $_
 
 // Check if cart has items for display
 $hasItems = !empty($cart_items);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -607,22 +604,17 @@ $hasItems = !empty($cart_items);
 
                     <div class="order-items">
                         <?php foreach ($cart_items as $item): ?>
-                            <?php $item_subtotal = $item['price'] * $item['quantity']; ?>
                             <div class="order-item">
                                 <div>
                                     <div class="item-name"><?php echo htmlspecialchars($item['name']); ?></div>
                                     <div class="item-qty">Qty: <?php echo $item['quantity']; ?></div>
                                 </div>
-                                <div class="item-price">₹<?php echo number_format($item_subtotal, 2); ?></div>
+                                <div class="item-price">₹<?php echo number_format($subtotal, 2); ?></div>
                             </div>
                         <?php endforeach; ?>
                     </div>
 
                     <div class="price-breakdown">
-                        <div class="price-row">
-                            <span>Subtotal</span>
-                            <span>₹<?php echo number_format($subtotal, 2); ?></span>
-                        </div>
                         <div class="price-row">
                             <span>Tax (GST <?php echo $tax_rate; ?>%)</span>
                             <span>₹<?php echo number_format($tax_amount, 2); ?></span>

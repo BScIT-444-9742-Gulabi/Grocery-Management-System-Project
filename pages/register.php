@@ -1,52 +1,46 @@
 <?php
 include '../config/database.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $mobile = mysqli_real_escape_string($conn, $_POST['mobile']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+$error = "";
+$success = "";
 
-    // Validation
-    if ($password !== $confirm_password) {
+/* REGISTER */
+if (isset($_POST['register'])) {
+
+    $name     = trim($_POST['name']);
+    $email    = trim($_POST['email']);
+    $mobile   = trim($_POST['mobile']);
+    $password = $_POST['password'];
+    $confirm  = $_POST['confirm_password'];
+
+    if ($password !== $confirm) {
         $error = "Passwords do not match!";
     } else {
-        // Check if email exists
-        $check_email = mysqli_query($conn, "SELECT id FROM users WHERE email = '$email'");
-        if (mysqli_num_rows($check_email) > 0) {
+
+        // Check existing email
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email=?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $check = $stmt->get_result();
+
+        if ($check->num_rows > 0) {
             $error = "Email already exists!";
         } else {
-            // Hash password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Check if mobile column exists in the table
-            $check_table = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'phone'");
-            $mobile_column_exists = (mysqli_num_rows($check_table) > 0);
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-            if ($mobile_column_exists) {
-                // Insert user with mobile number
-                $query = "INSERT INTO users (name, email, phone, password) 
-                    VALUES ('$name', '$email', '$mobile', '$hashed_password')";
+            $stmt = $conn->prepare("INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $name, $email, $mobile, $hashed);
+
+            if ($stmt->execute()) {
+                $success = "✅ Registration successful!";
+                $_POST = [];
             } else {
-                // Insert user without mobile number (fallback)
-                $query = "INSERT INTO users (name, email, password) 
-                    VALUES ('$name', '$email', '$hashed_password')";
-            }
-
-            if (mysqli_query($conn, $query)) {
-                if ($mobile_column_exists) {
-                    $success = "Successfully registered! Your mobile number is: " . $mobile;
-                } else {
-                    $success = "Successfully registered! (Mobile number field not available in database)";
-                }
-                // Clear form data
-                $_POST = array();
-            } else {
-                $error = "Registration failed! Error: " . mysqli_error($conn);
+                $error = "Registration failed!";
             }
         }
     }
@@ -55,193 +49,180 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Register - FreshGrocer</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<style>
-    .register-container {
-        max-width: 400px;
-        margin: 40px auto 30px auto;
-        background-color: #fff;
-        border-radius: 6px;
-        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-    .register-container h2 {
-        text-align: center;
-        color: #166534;
-        margin-bottom: 20px;
-        font-size: 22px;
-        font-weight: 600;
-    }
-
-    .register-container .error {
-        background-color: #f8d7da;
-        color: #842029;
-        border: 1px solid #f5c2c7;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 12px;
-        text-align: center;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .register-container .success {
-        background-color: #d1e7dd;
-        color: #0f5132;
-        border: 1px solid #badbcc;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 12px;
-        text-align: center;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .register-container form .form-group {
-        margin-bottom: 16px;
-        margin-left: 5px;
-    }
-
-    .register-container form label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 5px;
-        font-size: 13px;
-        color: #444;
-    }
-
-    .register-container form input[type="text"],
-    .register-container form input[type="email"],
-    .register-container form input[type="tel"],
-    .register-container form input[type="password"] {
-        width: 90%;
-        padding: 8px 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 5px;
-        font-size: 13px;
-        outline: none;
-        transition: border-color 0.2s;
-        color: #333;
-    }
-
-    .register-container form input[type="text"]:focus,
-    .register-container form input[type="email"]:focus,
-    .register-container form input[type="tel"]:focus,
-    .register-container form input[type="password"]:focus {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
-    }
-
-    .register-container form button {
-        width: 100%;
-        padding: 10px;
-        background-color: #16a34a;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
-    }
-
-    .register-container form button:hover {
-        background-color: #15803d;
-    }
-
-    .register-container form button:active {
-        transform: scale(0.98);
-    }
-
-    .register-container form p {
-        text-align: center;
-        margin-top: 12px;
-        font-size: 12px;
-        color: #666;
-    }
-
-    .register-container form p a {
-        color: #16a34a;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 12px;
-    }
-
-    .register-container form p a:hover {
-        text-decoration: underline;
-    }
-
-    @media (max-width: 500px) {
         .register-container {
-            margin: 30px 15px;
-            padding: 20px 18px;
-            max-width: 100%;
+            width: 380px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .register-container:hover {
+            transform: translateY(-5px);
         }
 
         .register-container h2 {
-            font-size: 20px;
-            margin-bottom: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
         }
-    }
 
-    @media (max-width: 500px) {
-        .register-container {
-            margin: 40px 20px;
-            padding: 30px 20px;
+        .form-group {
+            margin-bottom: 15px;
         }
-    }
-</style>
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 5px rgba(108, 99, 255, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #6c63ff;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #5548d9;
+        }
+
+        .error {
+            background: #ffe5e5;
+            color: #d8000c;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .success {
+            background: #e6ffed;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .register-container p {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-container a {
+            color: #6c63ff;
+            text-decoration: none;
+        }
+
+        .register-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
 
 <body>
-    <?php include '../includes/header.php'; ?>
 
-    <div class="register-container">
-        <h2>Create Account</h2>
+<div class="register-container">
+    <h2>Create Account</h2>
 
-        <?php if (isset($error)): ?>
-            <div class="error"><?php echo $error; ?></div>
-        <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="error"><?php echo $error; ?></div>
+    <?php endif; ?>
 
-        <?php if (isset($success)): ?>
-            <div class="success"><?php echo $success; ?></div>
-        <?php endif; ?>
+    <?php if ($success): ?>
+        <div class="success"><?php echo $success; ?></div>
+    <?php endif; ?>
 
-        <form method="POST" action="">
-            <div class="form-group">
-                <label>Full Name:</label>
-                <input type="text" name="name" value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>" required>
-            </div>
+    <form method="POST">
 
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" name="email" value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" required>
-            </div>
+        <div class="form-group">
+            <label>Full Name:</label>
+            <input type="text" name="name" required>
+        </div>
 
-            <div class="form-group">
-                <label>Mobile Number:</label>
-                <input type="tel" name="mobile" value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>" pattern="[0-9]{10}" title="10-digit mobile number" required>
-            </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" name="email" required>
+        </div>
 
-            <div class="form-group">
-                <label>Password:</label>
-                <input type="password" name="password" required minlength="6">
-            </div>
+        <div class="form-group">
+            <label>Mobile Number:</label>
+            <input type="tel" name="mobile" pattern="[0-9]{10}" required>
+        </div>
 
-            <div class="form-group">
-                <label>Confirm Password:</label>
-                <input type="password" name="confirm_password" required>
-            </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" name="password" required minlength="6">
+        </div>
 
-            <button type="submit">Register</button>
-            <p>Already have an account? <a href="login.php">Login here</a></p>
-        </form>
-    </div>
+        <div class="form-group">
+            <label>Confirm Password:</label>
+            <input type="password" name="confirm_password" required>
+        </div>
+
+        <button type="submit" name="register">Register</button>
+
+        <p>Already have an account? <a href="login.php">Login here</a></p>
+
+    </form>
+</div>
 
 </body>
-
 </html>
+
+<script>
+    function validateForm() {
+        let name = document.getElementById("name").value;
+        let regex = /^[a-zA-Z ]+$/;
+        let errorBox = document.getElementById("errorMsg");
+
+        if (!regex.test(name)) {
+            errorBox.innerHTML = "Only alphabets are allowed in the name!";
+
+            setTimeout(function() {
+                errorBox.innerHTML = "";
+            }, 3000);
+
+            return false;
+        } else {
+            errorBox.innerHTML = "";
+        }
+
+        return true;
+    }
+</script> 

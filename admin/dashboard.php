@@ -54,7 +54,7 @@ $stats['orders_today'] = $result ? mysqli_fetch_assoc($result)['count'] : 0;
 $result = safeQuery($conn, "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'");
 $stats['pending_orders'] = $result ? mysqli_fetch_assoc($result)['count'] : 0;
 
-$result = safeQuery($conn, "SELECT SUM(total_amount) as total FROM orders WHERE status = 'completed'");
+$result = safeQuery($conn, "SELECT SUM(total_price) as total FROM orders WHERE payment_status= 'completed'");
 $stats['total_revenue'] = $result ? mysqli_fetch_assoc($result)['total'] : 0;
 
 $result = safeQuery($conn, "SELECT SUM(total_amount) as total FROM orders WHERE DATE(order_date) = '$today' AND status = 'completed'");
@@ -65,7 +65,7 @@ $result = safeQuery($conn, "SELECT COUNT(*) as total FROM categories");
 $stats['total_categories'] = $result ? mysqli_fetch_assoc($result)['total'] : 0;
 
 // 5. Message Statistics
-$result = safeQuery($conn, "SELECT COUNT(*) as total FROM messages WHERE status = 'unread'");
+$result = safeQuery($conn, "SELECT COUNT(*) as total FROM messages WHERE `is_read` = '0'");
 $stats['unread_messages'] = $result ? mysqli_fetch_assoc($result)['total'] : 0;
 
 //  ANALYTICS DATA 
@@ -721,6 +721,12 @@ if ($stats['out_of_stock'] > 0) {
                 </a>
             </li>
             <li class="nav-item">
+                <a href="edit_about.php" class="nav-link">
+                    <i class="nav-icon fas fa-store-alt"></i>
+                    <span>Edit About</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="../logout.php" class="nav-link">
                     <i class="nav-icon fas fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -939,7 +945,7 @@ if ($stats['out_of_stock'] > 0) {
                                         <div style="font-weight: 500;"><?php echo htmlspecialchars($order['customer_name'] ?? 'Guest'); ?></div>
                                         <small style="color: #666; font-size: 0.85rem;"><?php echo $order['items_count']; ?> items</small>
                                     </td>
-                                    <td><strong>₹<?php echo number_format($order['total_amount'] ?? 0, 2); ?></strong></td>
+                                    <td><strong>₹<?php echo number_format($order['total_price'] ?? 0, 2); ?></strong></td>
                                     <td>
                                         <span class="status-badge status-<?php echo $order['status'] ?? 'pending'; ?>">
                                             <?php echo ucfirst($order['status'] ?? 'Pending'); ?>

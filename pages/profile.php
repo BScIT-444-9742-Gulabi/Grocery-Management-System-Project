@@ -16,6 +16,7 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>My Profile</title>
 </head>
@@ -140,6 +141,7 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
         font-size: 14px;
         color: #666;
     }
+
     .order-details {
         display: flex;
         justify-content: space-between;
@@ -309,12 +311,12 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
         .order-total {
             text-align: left;
         }
-        
+
         .order-items {
             display: block;
             overflow-x: auto;
         }
-        
+
         .order-info strong {
             width: 100px;
         }
@@ -356,12 +358,12 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
                 <?php if (mysqli_num_rows($orders_query) > 0): ?>
                     <div class="orders-container">
                         <?php while ($order = mysqli_fetch_assoc($orders_query)): ?>
-                            <?php 
+                            <?php
                             $items_query = mysqli_query($conn, "SELECT * FROM order_items WHERE order_id = {$order['id']}");
                             $items_count = mysqli_num_rows($items_query);
-                            
+
                             ?>
-                            
+
                             <div class="order-card">
                                 <div class="order-header">
                                     <div class="order-id">Order #<?php echo $order['id']; ?></div>
@@ -376,77 +378,72 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
                                     <div class="order-total">₹<?php echo number_format($order['total_price'], 2); ?> Tax 18% </div>
                                 </div>
                                 <?php if ($items_count > 0): ?>
-                                <table class="order-items">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Quantity</th>
-                                            <th>Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php while ($item = mysqli_fetch_assoc($items_query)): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                                            <td>
-                                                <?php 
-                                                
-                                                if (isset($item['price']) && $item['price'] > 0) {
-                                                    echo '₹' . number_format($item['price'], 2);
-                                                } else {
-                                                    
-                                                    if (isset($item['product_price'])) {
-                                                        echo '₹' . number_format($item['product_price'], 2);
-                                                    } 
-                                               
-                                                    elseif (isset($item['unit_price'])) {
-                                                        echo '₹' . number_format($item['unit_price'], 2);
-                                                    }
-                                                  
-                                                    elseif (isset($item['amount'])) {
-                                                        echo '₹' . number_format($item['amount'] / $item['quantity'], 2);
-                                                    }
-                                                    else {
-                                                        echo '<span style="color:#999;">Price not available</span>';
-                                                    }
-                                                }
-                                                ?>
-                                            </td>
-                                            <td><?php echo $item['quantity']; ?></td>
-                                            <td>
-                                                <?php $id = $item['product_id'];  ?>
-                                                <?php 
-                                                
-                                                $subtotal = 0;
-                                                if (isset($item['price']) && $item['price'] > 0) {
-                                                    $subtotal = $item['price'] * $item['quantity'];
-                                                } elseif (isset($item['product_price'])) {
-                                                    $subtotal = $item['product_price'] * $item['quantity'];
-                                                } elseif (isset($item['unit_price'])) {
-                                                    $subtotal = $item['unit_price'] * $item['quantity'];
-                                                } elseif (isset($item['amount'])) {
-                                                    $subtotal = $item['amount'];
-                                                }
-                                                
-                                                if ($subtotal > 0) {
-                                                    echo '₹' . number_format($subtotal, 2);
-                                                } else {
-                                                    echo '<span style="color:#999;">-</span>';
-                                                }
-                                                ?>
-                                            </td>
-                                        </tr>
-                                        <?php endwhile; ?>
-                                    </tbody>
-                                </table>
+                                    <table class="order-items">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php while ($item = mysqli_fetch_assoc($items_query)): ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                                    <td>
+                                                        <?php
+
+                                                        if (isset($item['price']) && $item['price'] > 0) {
+                                                            echo '₹' . number_format($item['price'], 2);
+                                                        } else {
+
+                                                            if (isset($item['product_price'])) {
+                                                                echo '₹' . number_format($item['product_price'], 2);
+                                                            } elseif (isset($item['unit_price'])) {
+                                                                echo '₹' . number_format($item['unit_price'], 2);
+                                                            } elseif (isset($item['amount'])) {
+                                                                echo '₹' . number_format($item['amount'] / $item['quantity'], 2);
+                                                            } else {
+                                                                echo '<span style="color:#999;">Price not available</span>';
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td><?php echo $item['quantity']; ?></td>
+                                                    <td>
+                                                        <?php $id = $item['product_id'];  ?>
+                                                        <?php
+
+                                                        $subtotal = 0;
+                                                        if (isset($item['price']) && $item['price'] > 0) {
+                                                            $subtotal = $item['price'] * $item['quantity'];
+                                                        } elseif (isset($item['product_price'])) {
+                                                            $subtotal = $item['product_price'] * $item['quantity'];
+                                                        } elseif (isset($item['unit_price'])) {
+                                                            $subtotal = $item['unit_price'] * $item['quantity'];
+                                                        } elseif (isset($item['amount'])) {
+                                                            $subtotal = $item['amount'];
+                                                        }
+
+                                                        if ($subtotal > 0) {
+                                                            echo '₹' . number_format($subtotal, 2);
+                                                        } else {
+                                                            echo '<span style="color:#999;">-</span>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endwhile; ?>
+                                        </tbody>
+                                    </table>
                                 <?php endif; ?>
 
                                 <div class="order-footer">
                                     <span class="status <?php echo strtolower($order['status']); ?>">
                                         <?php echo ucfirst($order['status']); ?>
                                     </span>
-                                    
+
                                     <a href="order-details.php?pid=<?php echo $id ?>&uid=<?php echo $_SESSION['user_id']; ?>" class="view-btn">View Full Details →</a>
                                 </div>
                             </div>
@@ -458,6 +455,46 @@ $orders_query = mysqli_query($conn, "SELECT * FROM orders WHERE user_id = $user_
             </div>
         </div>
     </div>
+
+    <hr>
+
+    <?php
+    include '../config/database.php';
+
+    $email = $user['email'];
+    // Prepare query
+    $stmt = $conn->prepare("
+    SELECT m.id, m.message, r.subject
+    FROM messages m
+    LEFT JOIN message_replies r 
+    ON m.id = r.message_id
+    WHERE m.email = ?
+");
+
+    // Check prepare error
+    if (!$stmt) {
+        die("SQL Error: " . $conn->error);
+    }
+
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check result
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo "Message: " . $row['message'] . "<br>";
+
+            if (!empty($row['reply'])) {
+                echo "Reply: " . $row['reply'] . "<br><br>";
+            } else {
+                echo "<div style='text-align:center; margin-top:20px;'>Reply: No reply yet</div>";
+            }
+        }
+    } else {
+        echo "<div style='text-align:center; margin-top:20px;'>No messages found</div>";
+    }
+    ?>
 
     <?php include '../includes/footer.php'; ?>
 </body>

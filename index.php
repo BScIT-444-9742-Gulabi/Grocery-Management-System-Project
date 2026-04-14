@@ -310,7 +310,7 @@ while ($col = mysqli_fetch_assoc($cols)) {
             border-color: #3b82f6 !important;
         }
 
- 
+
         .product-count {
             background: #16a34a;
             color: white;
@@ -597,6 +597,20 @@ while ($col = mysqli_fetch_assoc($cols)) {
                 height: 220px;
             }
         }
+
+        .banner {
+            margin-top: 10px;
+            background-image: url('./assets/banner/freshbanner.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
     </style>
 </head>
 
@@ -702,8 +716,8 @@ while ($col = mysqli_fetch_assoc($cols)) {
                                 <?php if ($old): ?><span class="old-price"><?php echo $old; ?></span><?php endif; ?>
                             </div>
                             <div class="product-actions">
-                                
-                                <button class="add-to-cart <?php echo ($p['stock'] <= 0) ? 'out-of-stock' : '';?>"
+
+                                <button class="add-to-cart <?php echo ($p['stock'] <= 0) ? 'out-of-stock' : ''; ?>"
                                     <?php echo ($p['stock'] <= 0) ? 'disabled' : ''; ?>
                                     <?php if ($p['stock'] > 0): ?>
                                     data-food-id="<?php echo $p['id']; ?>"

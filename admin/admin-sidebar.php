@@ -271,7 +271,6 @@
                 <a href="products.php" class="nav-link">
                     <i class="nav-icon fas fa-box"></i>
                     <span>Products</span>
-                    <span class="nav-badge">2</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -284,7 +283,7 @@
                 <a href="orders.php" class="nav-link">
                     <i class="nav-icon fas fa-shopping-bag"></i>
                     <span>Orders</span>
-                    <span class="nav-badge">5</span>
+                    <!-- <span class="nav-badge">5</span> -->
                 </a>
             </li>
             <li class="nav-item">
@@ -297,13 +296,19 @@
                 <a href="messages.php" class="nav-link">
                     <i class="nav-icon fas fa-envelope"></i>
                     <span>Messages</span>
-                    <span class="nav-badge">12</span>
+                    <!-- <span class="nav-badge">12</span> -->
                 </a>
             </li>
             <li class="nav-item">
                 <a href="reports.php" class="nav-link">
                     <i class="nav-icon fas fa-chart-bar"></i>
                     <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="edit_about.php" class="nav-link">
+                    <i class="nav-icon fas fa-store-alt"></i>
+                    <span>Edit About</span>
                 </a>
             </li>
             <li class="nav-item">

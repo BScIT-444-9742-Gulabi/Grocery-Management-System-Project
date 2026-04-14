@@ -162,6 +162,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-bottom: 18px;
         }
     }
+
+    .forgot-link {
+        text-decoration: none;
+        color: #007BFF;
+        font-size: 14px;
+        transition: 0.3s ease;
+    }
+
+    .forgot-link:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    .forgot-link:active {
+        color: #003f7f;
+    }
 </style>
 
 <body>
@@ -187,6 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <button type="submit">Login</button>
             <p>Don't have an account? <a href="register.php">Register here</a></p>
+            <a href="forget-pass.php" class="forgot-link">Forget Password?</a>
         </form>
     </div>
 

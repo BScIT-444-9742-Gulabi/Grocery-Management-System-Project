@@ -106,21 +106,20 @@ if (isset($_SESSION['checkout_data'])) {
     $data = $_SESSION['checkout_data'];
     $products = $_SESSION['checkout_products'] ?? [];
 
+    // echo "<pre>";
+    // print_r($data);
+    // print_r($products);
+    // echo "</pre>";
+
     $user_id = $_SESSION['user_id'] ?? 0;
-    
+
     mysqli_begin_transaction($conn);
-    
+
     try {
         $address = str_replace("\r\n", ", ", $data['address']);
         $shipping_address = mysqli_real_escape_string($conn, "$address, {$data['city']}, {$data['pincode']}, {$data['state']}");
 
         $order_number = 'ORD' . time() . rand(1000, 9999);
-
-        // Calculate total items
-        $total_items = 0;
-        foreach ($products as $product) {
-            $total_items += $product['product_quantity'];
-        }
 
         // Insert order
         $sql = "INSERT INTO orders SET
@@ -137,53 +136,49 @@ if (isset($_SESSION['checkout_data'])) {
         }
 
         $order_id = mysqli_insert_id($conn);
-        
+
         // Collect product IDs for cart removal
         $product_ids = [];
-        
+
         // Insert order items
         foreach ($products as $product) {
             $product_id = $product['id'] ?? 0;
             $product_ids[] = $product_id;
-            
+
             $item_sql = "INSERT INTO order_items SET
                 order_id = '$order_id',
                 product_id = '$product_id',
                 product_name = '" . mysqli_real_escape_string($conn, $product['product_name'] ?? '') . "',
-                product_price = '" . ($product['product_price'] ?? 0) . "',
-                quantity = '" . ($product['product_quantity'] ?? 1) . "',
-                subtotal = '" . ($product['product_subtotal'] ?? 0) . "'";
-            
+                product_price = '" . ($products['product_price'] ?? 0) . "',
+                quantity = '" . ($data['Quantity'] ?? 0) . "',
+                subtotal = '" . ($products['product_price'] ?? 0) . "'";
+
             if (!mysqli_query($conn, $item_sql)) {
                 throw new Exception("Order item insertion failed: " . mysqli_error($conn));
             }
         }
-        
+
         // Remove items from cart table
         $removed_count = 0;
         if (!empty($product_ids) && $user_id > 0) {
             // Create comma-separated list of product IDs
             $product_ids_str = implode(',', array_map('intval', $product_ids));
-            
+
             // Delete from cart where user_id and product_id match
             $delete_cart_sql = "DELETE FROM cart 
                 WHERE user_id = '$user_id' 
                 AND product_id IN ($product_ids_str)";
-            
+
             if (!mysqli_query($conn, $delete_cart_sql)) {
                 throw new Exception("Cart cleanup failed: " . mysqli_error($conn));
             }
-            
+
             $removed_count = mysqli_affected_rows($conn);
         }
-        
+
         // Commit transaction
         mysqli_commit($conn);
-        
-        // Clear session
-        unset($_SESSION['checkout_data']);
-        unset($_SESSION['checkout_products']);
-        
+
         // Also clear cart session if exists
         if (isset($_SESSION['cart'])) {
             unset($_SESSION['cart']);
@@ -195,12 +190,12 @@ if (isset($_SESSION['checkout_data'])) {
                     <div class="success-icon">✓</div>
                     <h2>🎉 Order Confirmed!</h2>
                     <p>Thank you for your purchase. Your order has been placed successfully.</p>';
-        
+
         // Show cart removal notice
         if ($removed_count > 0) {
             echo '<div class="cart-notice">✅ ' . $removed_count . ' item(s) removed from your cart</div>';
         }
-        
+
         echo '<div class="order-number">' . $order_number . '</div>
                     
                     <div class="order-details">
@@ -214,7 +209,7 @@ if (isset($_SESSION['checkout_data'])) {
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Total Items:</span>
-                            <span class="detail-value">' . $total_items . ' items</span>
+                            <span class="detail-value">' . ($data['Quantity'] ?? 0) . ' items</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Delivery Address:</span>
@@ -230,19 +225,17 @@ if (isset($_SESSION['checkout_data'])) {
         if (!empty($products)) {
             echo '<div class="products-list">
                     <h3 style="text-align:left; margin-bottom:20px; color:#333;">Order Summary</h3>';
-
             foreach ($products as $product) {
-                $tax_amount = $product['product_price'] * 0.18;
                 echo '<div class="product-item">
                         <div class="product-info">
                             <h4>' . htmlspecialchars($product['product_name']) . '</h4>
                             <div class="product-meta">
-                                Tax: ₹' . number_format($tax_amount, 2) . ' |                                              
-                                Quantity: ' . $product['product_quantity'] . ' × ₹' . $product['product_price'] . '
+                                Tax: ₹' .number_format($data['tax_amount'], 2).' |                                              
+                                Quantity: ' . ($data['Quantity'] ?? 0)  . ' × ₹' . $product['product_price'] . '
                             </div>
                         </div>
                         <div class="product-price">
-                            ₹' . number_format($product['product_subtotal'], 2) . '
+                            ₹' . number_format($data['total_amount'], 2) . '
                         </div>
                       </div>';
             }
@@ -257,7 +250,6 @@ if (isset($_SESSION['checkout_data'])) {
               </div>
             </div>
           </div>';
-        
     } catch (Exception $e) {
         // Rollback on error
         mysqli_rollback($conn);
@@ -274,9 +266,6 @@ if (isset($_SESSION['checkout_data'])) {
                 </div>
               </div>';
     }
-    
-    mysqli_close($conn);
-    
 } else {
     echo '<div class="container">
             <div class="success-card" style="background:#fff5f5; border:2px solid #feb2b2;">
@@ -290,4 +279,79 @@ if (isset($_SESSION['checkout_data'])) {
             </div>
           </div>';
 }
+?>
+
+<!-- Grocery Project Send Details -->
+
+<?php
+require_once __DIR__ . '/../PHPMailer-master/src/PHPMailer.php';
+require_once __DIR__ . '/../PHPMailer-master/src/SMTP.php';
+require_once __DIR__ . '/../PHPMailer-master/src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$email = $data['email'] ?? '';
+$product = $products[0] ?? null;
+
+// Clear the checkout session data now so it does not block response.
+unset($_SESSION['checkout_data']);
+unset($_SESSION['checkout_products']);
+
+// Send order email after the client response has been flushed.
+if (!empty($email) && $product) {
+    if (function_exists('fastcgi_finish_request')) {
+        session_write_close();
+        fastcgi_finish_request();
+    } else {
+        @ob_end_flush();
+        @ob_flush();
+        flush();
+    }
+
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+
+        $mail->Username = 'omg191883@gmail.com';
+        $mail->Password = 'ysrxidzntkaefilm';
+
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        // SSL fix
+        $mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            ]
+        ];
+
+        $mail->setFrom('omg191883@gmail.com', 'Fresh Grocery');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Order Invoice';
+        $mail->Body = "
+            <h3>Order Invoice</h3>
+            <p><b>Product Name:</b> " . htmlspecialchars($product['product_name'] ?? '') . "</p>
+            <p><b>Price:</b> ₹" . number_format($product['product_price'] ?? 0, 2) . "</p>
+            <p><b>Quantity:</b> " . ($data['Quantity'] ?? 0) . "</p>
+            <p><b>Tax Amount:</b> ₹" . number_format($data['tax_amount'] ?? 0, 2) . "</p>
+            <p><b>Total:</b> ₹" . number_format($data['total_amount'] ?? 0, 2) . "</p>
+            <p><b>Payment Method:</b> " . ($data['payment_method'] ?? 'cod') . "</p>
+            <p>Thank you for your order!</p>
+        ";
+
+        $mail->send();
+    } catch (Exception $e) {
+        error_log('Order email failed: ' . $e->getMessage());
+    }
+}
+
+mysqli_close($conn);
 ?>

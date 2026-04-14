@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 22, 2026 at 08:15 AM
+-- Generation Time: Apr 03, 2026 at 10:24 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -18,7 +18,9 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `grocery_store`
+CREATE DATABASE IF NOT EXISTS grocery_store;
+USE grocery_store;
+SET FOREIGN_KEY_CHECKS = 0;
 --
 
 -- --------------------------------------------------------
@@ -27,6 +29,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `cart`
 --
 
+DROP TABLE IF EXISTS `cart`;
 CREATE TABLE `cart` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -40,7 +43,8 @@ CREATE TABLE `cart` (
 --
 
 INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `added_at`) VALUES
-(21, 2, 30, 1, '2026-03-22 07:05:46');
+(23, 1, 2, 2, '2026-03-28 06:51:43'),
+(24, 1, 15, 1, '2026-03-28 06:54:52');
 
 -- --------------------------------------------------------
 
@@ -48,6 +52,7 @@ INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `added_at`) VALUE
 -- Table structure for table `categories`
 --
 
+DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -78,6 +83,7 @@ INSERT INTO `categories` (`id`, `name`, `description`, `image`, `created_at`) VA
 -- Table structure for table `coupons`
 --
 
+DROP TABLE IF EXISTS `coupons`;
 CREATE TABLE `coupons` (
   `id` int(11) NOT NULL,
   `code` varchar(50) NOT NULL,
@@ -98,8 +104,8 @@ CREATE TABLE `coupons` (
 --
 
 INSERT INTO `coupons` (`id`, `code`, `discount_type`, `discount_value`, `min_order`, `max_discount`, `valid_from`, `valid_to`, `usage_limit`, `used_count`, `is_active`, `created_at`) VALUES
-(1, 'WELCOME10', 'percentage', 10.00, 300.00, 100.00, '2026-02-10', '2026-02-20', 100, 0, 1, '2026-02-12 12:44:59'),
-(2, 'SAVE50', 'fixed', 50.00, 300.00, 0.00, '2024-02-09', '2027-12-20', 50, 0, 1, '2026-02-12 12:44:59'),
+(1, 'WELCOME10', 'percentage', 10.00, 100.00, 30.00, '2026-02-10', '2027-02-02', 100, 0, 1, '2026-02-12 12:44:59'),
+(2, 'SAVE50', 'fixed', 20.00, 30.00, 50.00, '2024-02-09', '2024-12-12', 50, 0, 1, '2026-02-12 12:44:59'),
 (3, 'FREESHIP', 'percentage', 15.00, 1000.00, 150.00, '2026-02-10', '2026-06-20', 200, 0, 1, '2026-02-12 12:44:59'),
 (4, 'FRESH20', 'percentage', 20.00, 800.00, 200.00, '2024-02-01', '2026-07-22', 75, 0, 1, '2026-02-12 12:44:59'),
 (5, 'FLAT100', 'fixed', 100.00, 600.00, 0.00, '2026-01-24', '2026-12-20', 150, 0, 1, '2026-02-12 12:44:59');
@@ -107,9 +113,36 @@ INSERT INTO `coupons` (`id`, `code`, `discount_type`, `discount_value`, `min_ord
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `features`
+--
+
+DROP TABLE IF EXISTS `features`;
+CREATE TABLE `features` (
+  `id` int(11) NOT NULL,
+  `icon` varchar(50) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text NOT NULL,
+  `display_order` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `features`
+--
+
+INSERT INTO `features` (`id`, `icon`, `title`, `description`, `display_order`, `is_active`) VALUES
+(1, 'fa-seedling', 'Farm Fresh', 'Direct partnerships with local farmers ensure you get the freshest produce possible, often harvested just hours before delivery.', 1, 1),
+(2, 'fa-truck', 'Fast Delivery', 'Get your groceries delivered within 2 hours. We prioritize speed without compromising on quality or freshness.', 2, 1),
+(3, 'fa-award', 'Quality Guarantee', 'Every product is carefully selected and inspected. If you\'re not satisfied, we\'ll replace it or refund your money.', 3, 1),
+(4, 'fa-hand-holding-heart', 'Community Focus', 'We support local farmers and producers, contributing to sustainable agriculture and the local economy.', 4, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `messages`
 --
 
+DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -127,7 +160,7 @@ CREATE TABLE `messages` (
 
 INSERT INTO `messages` (`id`, `name`, `email`, `subject`, `message`, `is_read`, `replied`, `date_sent`) VALUES
 (1, 'Sumit', 'sumit@gmail.com', 'Delivery Query', 'When will my order be delivered?', 1, 1, '2026-02-12 11:33:27'),
-(2, 'vivek', 'vivek@gmail.com', 'Product Quality', 'The apples were very fresh, thank you!', 1, 0, '2026-02-12 11:33:27');
+(2, 'vivek', 'vivek@gmail.com', 'Product Quality', 'The apples were very fresh, thank you!', 0, 0, '2026-02-12 11:33:27');
 
 -- --------------------------------------------------------
 
@@ -135,6 +168,7 @@ INSERT INTO `messages` (`id`, `name`, `email`, `subject`, `message`, `is_read`, 
 -- Table structure for table `message_replies`
 --
 
+DROP TABLE IF EXISTS `message_replies`;
 CREATE TABLE `message_replies` (
   `id` int(11) NOT NULL,
   `message_id` int(11) NOT NULL,
@@ -157,6 +191,7 @@ INSERT INTO `message_replies` (`id`, `message_id`, `admin_id`, `subject`, `messa
 -- Table structure for table `orders`
 --
 
+DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
   `order_number` varchar(20) DEFAULT NULL,
@@ -171,7 +206,7 @@ CREATE TABLE `orders` (
   `payment_status` enum('pending','completed','failed') DEFAULT 'pending',
   `notes` text DEFAULT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `delivery_date` date DEFAULT NULL
+  `delivery_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -180,8 +215,8 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`id`, `order_number`, `user_id`, `total_price`, `shipping_address`, `billing_address`, `phone`, `email`, `status`, `payment_method`, `payment_status`, `notes`, `order_date`, `delivery_date`) VALUES
 (6, 'ORD17708993486484', 2, 5.89, 'indrapuri 2A, patliputra, 800024, bihar', NULL, NULL, NULL, 'pending', 'cod', 'pending', NULL, '2026-02-12 12:29:08', NULL),
-(7, 'ORD17740344806547', 2, 36.57, 'indrapuri 2a, patliputra, 800024, bihar', NULL, NULL, NULL, 'pending', 'cod', 'pending', NULL, '2026-03-20 19:21:20', NULL),
-(8, 'ORD17740349582465', 2, 331.57, 'patna, jamui, 811316, Bihar', NULL, NULL, NULL, 'pending', 'cod', 'pending', NULL, '2026-03-20 19:29:18', NULL);
+(14, 'ORD17751554414123', 2, 95.57, 'indrapuri 2a, patliputra, 800024, bihar', NULL, NULL, NULL, 'pending', 'cod', 'pending', NULL, '2026-04-02 18:44:01', NULL),
+(18, 'ORD17751586757368', 2, 107.36, 'indrapuri 2a, patliputra, 800024, bihar', NULL, NULL, NULL, 'pending', 'cod', 'pending', NULL, '2026-04-02 19:37:55', NULL);
 
 -- --------------------------------------------------------
 
@@ -189,6 +224,7 @@ INSERT INTO `orders` (`id`, `order_number`, `user_id`, `total_price`, `shipping_
 -- Table structure for table `order_items`
 --
 
+DROP TABLE IF EXISTS `order_items`;
 CREATE TABLE `order_items` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
@@ -205,8 +241,8 @@ CREATE TABLE `order_items` (
 
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `product_price`, `quantity`, `subtotal`) VALUES
 (1, 6, 24, 'Dark Chocolate', 4.99, 1, 4.99),
-(2, 7, 13, 'Croissants', 30.99, 1, 30.99),
-(3, 8, 28, 'Black Pepper', 280.99, 1, 280.99);
+(9, 14, 35, 'Laundry Detergent', 80.99, 1, 0.00),
+(13, 18, 4, 'Broccoli', 0.00, 2, 0.00);
 
 -- --------------------------------------------------------
 
@@ -214,6 +250,7 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `prod
 -- Table structure for table `order_tracking`
 --
 
+DROP TABLE IF EXISTS `order_tracking`;
 CREATE TABLE `order_tracking` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
@@ -226,9 +263,64 @@ CREATE TABLE `order_tracking` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `otp_verification`
+--
+
+DROP TABLE IF EXISTS `otp_verification`;
+CREATE TABLE `otp_verification` (
+  `id` int(11) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `otp` varchar(4) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expiry_time` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `otp_verification`
+--
+
+INSERT INTO `otp_verification` (`id`, `email`, `otp`, `created_at`, `expiry_time`) VALUES
+(7, 'workshopit26@gmail.com', '1927', '2026-04-03 06:45:39', '2026-04-03 08:50:39');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_content`
+--
+
+DROP TABLE IF EXISTS `page_content`;
+CREATE TABLE `page_content` (
+  `id` int(11) NOT NULL,
+  `page_name` varchar(100) NOT NULL,
+  `section_key` varchar(100) NOT NULL,
+  `content` longtext NOT NULL,
+  `content_type` enum('text','html','image') DEFAULT 'text',
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `page_content`
+--
+
+INSERT INTO `page_content` (`id`, `page_name`, `section_key`, `content`, `content_type`, `updated_at`) VALUES
+(1, 'about', 'hero_title', 'About FreshGrocer', 'text', '2026-04-03 07:06:03'),
+(2, 'about', 'hero_subtitle', 'Your trusted partner for fresh groceries delivered to your doorstep. Quality, freshness, and convenience since 2020.', 'text', '2026-04-03 07:06:03'),
+(3, 'about', 'story_title', 'Our Story', 'text', '2026-04-03 07:06:03'),
+(4, 'about', 'story_content', '<p>FreshGrocer started in 2020 with a simple yet powerful vision: to revolutionize the way people shop for groceries. What began as a small local delivery service has grown into a trusted name in the community, serving thousands of happy customers.</p><p>Our founders, passionate about fresh food and community health, saw an opportunity to bridge the gap between local farmers and urban consumers. Today, we\'re proud to continue that mission while embracing innovation and sustainability.</p>', 'html', '2026-04-03 07:06:03'),
+(5, 'about', 'stats_title', 'Our Impact in Numbers', 'text', '2026-04-03 07:06:03'),
+(6, 'about', 'team_title', 'Meet Our Leadership Team', 'text', '2026-04-03 07:06:03'),
+(7, 'about', 'testimonials_title', 'What Our Customers Say', 'text', '2026-04-03 07:06:03'),
+(8, 'about', 'cta_title', 'Join Our Fresh Community', 'text', '2026-04-03 07:06:03'),
+(9, 'about', 'cta_content', 'Experience the convenience of fresh groceries delivered to your doorstep. Sign up today and get 20% off your first order!', 'html', '2026-04-03 07:57:40'),
+(10, 'about', 'cta_button_text', 'Get Started Now', 'text', '2026-04-03 07:06:03');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `products`
 --
 
+DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
   `id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,
@@ -261,14 +353,14 @@ INSERT INTO `products` (`id`, `name`, `slug`, `price`, `old_price`, `image`, `ca
 (5, 'Strawberries', 'strawberries', 40.99, 50.99, 'strawberry.jpg', 1, 'Sweet and juicy strawberries', 'Antioxidant rich, Perfect for desserts', 80, 'pack', '500g', 'Berry Fresh', 1, 4.70, 0, '2026-02-12 11:21:39'),
 (6, 'Potatoes', 'potatoes', 20.29, 23.79, 'potato.jpg', 1, 'Fresh potatoes for all your cooking needs', 'Versatile, Long shelf life, Energy rich', 250, 'kg', '2kg', 'Farm Fresh', 0, 4.10, 0, '2026-02-12 11:21:39'),
 (7, 'Fresh Milk', 'fresh-milk', 59.49, 63.99, 'milk.jpg', 2, 'Fresh whole milk 1 liter', 'Pasteurized, Vitamin D added, Creamy', 100, 'bottle', '1L', 'Dairy Pure', 1, 4.60, 0, '2026-02-12 11:21:39'),
-(8, 'Eggs - Dozen', 'eggs-dozen', 100.99, 109.49, 'eggs.jpg', 2, 'Farm fresh eggs, 12 pieces', 'Free range, Rich in protein, Large size', 0, 'dozen', '700g', 'Happy Hens', 1, 4.50, 0, '2026-02-12 11:21:39'),
+(8, 'Eggs - Dozen', 'eggs-dozen', 100.99, 109.49, 'eggs.jpg', 2, 'Farm fresh eggs, 12 pieces', 'Free range, Rich in protein, Large size', 2, 'dozen', '700g', 'Happy Hens', 1, 4.50, 0, '2026-02-12 11:21:39'),
 (9, 'Cheddar Cheese', 'cheddar-cheese', 88.99, 90.49, 'cheese.jpg', 2, 'Aged cheddar cheese block', 'Aged 6 months, Sharp flavor, Perfect for sandwiches', 75, 'block', '400g', 'Cheese Masters', 0, 4.40, 0, '2026-02-12 11:21:39'),
 (10, 'Butter', 'butter', 80.99, 78.49, 'butter.jpg', 2, 'Salted butter, perfect for cooking', 'Creamy, Rich flavor, No additives', 90, 'pack', '250g', 'Butter Best', 0, 4.30, 0, '2026-02-12 11:21:39'),
 (11, 'Greek Yogurt', 'greek-yogurt', 50.99, 53.49, 'yogurt.jpg', 2, 'Creamy Greek yogurt, high in protein', 'High protein, Low fat, Probiotic', 110, 'cup', '500g', 'Yogo', 1, 4.60, 0, '2026-02-12 11:21:39'),
 (12, 'Fresh Bread', 'fresh-bread', 25.49, 30.99, 'breads.jpg', 3, 'Freshly baked white bread loaf', 'Soft, Fresh daily, No preservatives', 60, 'loaf', '400g', 'Bread House', 1, 4.40, 0, '2026-02-12 11:21:39'),
 (13, 'Croissants', 'croissants', 30.99, 40.49, 'croissant.jpg', 3, 'Buttery French croissants', 'Flaky, Buttery, Perfect for breakfast', 45, 'pack', '4 pieces', 'French Bakery', 1, 4.70, 0, '2026-02-12 11:21:39'),
 (14, 'Chocolate Cake', 'chocolate-cake', 120.99, 140.99, 'cake.jpg', 3, 'Decadent chocolate cake', 'Rich chocolate, Moist, Creamy frosting', 20, 'cake', '1kg', 'Sweet Delights', 1, 4.80, 0, '2026-02-12 11:21:39'),
-(15, 'Bagels', 'bagels', 27.49, 30.99, 'bagel.jpg', 3, 'Fresh plain bagels, 6 pieces', 'Chewy, Perfect for toasting, Versatile', 0, 'pack', '6 pieces', 'Bagel Co', 0, 4.30, 0, '2026-02-12 11:21:39'),
+(15, 'Bagels', 'bagels', 27.49, 30.99, 'bagel.jpg', 3, 'Fresh plain bagels, 6 pieces', 'Chewy, Perfect for toasting, Versatile', 3, 'pack', '6 pieces', 'Bagel Co', 0, 4.30, 0, '2026-02-12 11:21:39'),
 (16, 'Orange Juice', 'orange-juice', 47.99, 55.49, 'orange-juice.jpg', 4, '100% pure orange juice, no added sugar', 'Fresh squeezed, Vitamin C rich, No pulp', 85, 'bottle', '1L', 'Juice Co', 1, 4.50, 0, '2026-02-12 11:21:39'),
 (17, 'Coffee Beans', 'coffee-beans', 80.99, 90.99, 'coffee.jpg', 4, 'Premium Arabica coffee beans', 'Dark roast, Rich aroma, Freshly roasted', 40, 'pack', '500g', 'Coffee Masters', 1, 4.60, 0, '2026-02-12 11:21:39'),
 (18, 'Green Tea', 'green-tea', 80.99, 83.99, 'tea.jpg', 4, 'Organic green tea bags', 'Antioxidant rich, Refreshing, 50 bags', 5, 'box', '100g', 'Tea Leaf', 0, 4.40, 0, '2026-02-12 11:21:39'),
@@ -298,6 +390,7 @@ INSERT INTO `products` (`id`, `name`, `slug`, `price`, `old_price`, `image`, `ca
 -- Table structure for table `reviews`
 --
 
+DROP TABLE IF EXISTS `reviews`;
 CREATE TABLE `reviews` (
   `id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
@@ -324,9 +417,63 @@ INSERT INTO `reviews` (`id`, `product_id`, `user_id`, `rating`, `comment`, `is_a
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `team_members`
+--
+
+DROP TABLE IF EXISTS `team_members`;
+CREATE TABLE `team_members` (
+  `id` int(11) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `position` varchar(200) NOT NULL,
+  `bio` text DEFAULT NULL,
+  `photo_url` varchar(500) DEFAULT NULL,
+  `display_order` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `team_members`
+--
+
+INSERT INTO `team_members` (`id`, `name`, `position`, `bio`, `photo_url`, `display_order`, `is_active`) VALUES
+(1, 'Gulabi kumar', 'Founder & CEO', '10+ years in retail management', NULL, 1, 1),
+(2, 'Aman kumar', 'Head of Operations', 'Supply chain expert', NULL, 2, 1),
+(3, 'Raj', 'Quality Control Director', 'Former food safety inspector', NULL, 3, 1),
+(4, 'Rohit kumar', 'Customer Experience', 'Customer service champion', NULL, 4, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `testimonials`
+--
+
+DROP TABLE IF EXISTS `testimonials`;
+CREATE TABLE `testimonials` (
+  `id` int(11) NOT NULL,
+  `customer_name` varchar(200) NOT NULL,
+  `customer_role` varchar(200) DEFAULT NULL,
+  `content` text NOT NULL,
+  `rating` int(1) DEFAULT 5,
+  `display_order` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `testimonials`
+--
+
+INSERT INTO `testimonials` (`id`, `customer_name`, `customer_role`, `content`, `rating`, `display_order`, `is_active`) VALUES
+(1, 'Priya Sharma', 'Regular Customer for 2 years', 'FreshGrocer has changed how I shop for groceries. The quality is consistently excellent and delivery is always on time. Highly recommended!', 5, 1, 1),
+(2, 'Sumit kumar', 'Customer for 1 year', 'As a working professional, FreshGrocer saves me hours every week. The produce is fresher than what I find at supermarkets.', 5, 2, 1),
+(3, 'Ajay kumar', 'Health Conscious Customer', 'I love supporting local farmers through FreshGrocer. Knowing where my food comes from gives me peace of mind.', 5, 3, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -345,12 +492,12 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `image`, `role`, `phone`, `address`, `created_at`) VALUES
 (1, 'Admin User', 'admin@freshgrocer.com', '$2y$10$cC8kcO70hpeBgQBhe6hENecU8V/.eO0.WcRAtWqC013vjkv8NVDHy', 'admin.jpg', 'admin', '+91 9608783528', '800024 Indrapuri 2A, Patliputra Patna', '2026-02-12 11:21:39'),
-(2, 'Amit', 'amit@gmail.com', '$2y$10$/fjmMNBbR23LMdL7VN3o.uf/1/bkSl6fQ45MJoyHLWoIM5xFHY8WS', '1770899380_bakery.jpg', 'user', '+91 8393748274', '800012 , Rajiv Nagar 2A, Patliputra Patna ', '2026-02-12 11:21:39'),
+(2, 'Gulabi kumar', 'gulabikumar247@gmail.com', '$2y$10$HZj7qcDet4vZnD.KCCkbe.cH/OvEM5vhep1gGhcUKeSxohfycX/Mq', '1770899380_bakery.jpg', 'user', '+91 8393748274', '800012 , Rajiv Nagar 2A, Patliputra Patna ', '2026-02-12 11:21:39'),
 (3, 'Sumit', 'sumit@gmail.com', '$2y$10$/fjmMNBbR23LMdL7VN3o.uf/1/bkSl6fQ45MJoyHLWoIM5xFHY8WS', 'user2.jpg', 'user', '+91 9873827482', '800013 ,Vikash Nagar 10C,Patliputra Patna', '2026-02-12 11:21:39'),
 (4, 'Vivek', 'vivek@gmail.com', '$2y$10$/fjmMNBbR23LMdL7VN3o.uf/1/bkSl6fQ45MJoyHLWoIM5xFHY8WS', 'user3.jpg', 'user', '+91 8284739274', '800011 Raza Bazar , 1B,Patliputra Patna', '2026-02-12 11:21:39'),
 (5, 'Soni', 'soni@gmail.com', '$2y$10$/fjmMNBbR23LMdL7VN3o.uf/1/bkSl6fQ45MJoyHLWoIM5xFHY8WS', 'user4.jpg', 'user', '+91 9199837482', '800010, Patna City , 2A ,Patna Junction', '2026-02-12 11:21:39'),
 (6, 'Sharvan', 'sharvan@gmail.com', '$2y$10$/fjmMNBbR23LMdL7VN3o.uf/1/bkSl6fQ45MJoyHLWoIM5xFHY8WS', 'user5.jpg', 'user', '+91 7783784284', '800001 ,Bazar Smiti ,1D, Rajendra Nagar Patna', '2026-02-12 11:21:39'),
-(7, 'raj', 'raj@gmail.com', '$2y$10$cC8kcO70hpeBgQBhe6hENecU8V/.eO0.WcRAtWqC013vjkv8NVDHy', 'default.png', 'user', '9388393834', NULL, '2026-03-20 18:01:14');
+(13, 'Ajay', 'workshopit26@gmail.com', '$2y$10$Y1fNg/.9VDfswCxu9k7K.ujQ6pibIyGsEagItjDWjDBrY9aypnxFW', 'default.png', 'user', '9608783528', NULL, '2026-04-03 06:44:07');
 
 -- --------------------------------------------------------
 
@@ -358,6 +505,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `image`, `role`, `phone`
 -- Table structure for table `wishlist`
 --
 
+DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -389,6 +537,12 @@ ALTER TABLE `categories`
 ALTER TABLE `coupons`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `code` (`code`);
+
+--
+-- Indexes for table `features`
+--
+ALTER TABLE `features`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `messages`
@@ -428,6 +582,19 @@ ALTER TABLE `order_tracking`
   ADD KEY `order_id` (`order_id`);
 
 --
+-- Indexes for table `otp_verification`
+--
+ALTER TABLE `otp_verification`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `page_content`
+--
+ALTER TABLE `page_content`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_page_section` (`page_name`,`section_key`);
+
+--
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
@@ -441,6 +608,18 @@ ALTER TABLE `reviews`
   ADD PRIMARY KEY (`id`),
   ADD KEY `product_id` (`product_id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `team_members`
+--
+ALTER TABLE `team_members`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `testimonials`
+--
+ALTER TABLE `testimonials`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -465,7 +644,7 @@ ALTER TABLE `wishlist`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -478,6 +657,12 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `coupons`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `features`
+--
+ALTER TABLE `features`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -495,19 +680,31 @@ ALTER TABLE `message_replies`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `order_tracking`
 --
 ALTER TABLE `order_tracking`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `otp_verification`
+--
+ALTER TABLE `otp_verification`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `page_content`
+--
+ALTER TABLE `page_content`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -522,10 +719,22 @@ ALTER TABLE `reviews`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
+-- AUTO_INCREMENT for table `team_members`
+--
+ALTER TABLE `team_members`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `testimonials`
+--
+ALTER TABLE `testimonials`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `wishlist`
@@ -589,8 +798,10 @@ ALTER TABLE `reviews`
 ALTER TABLE `wishlist`
   ADD CONSTRAINT `wishlist_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `wishlist_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
