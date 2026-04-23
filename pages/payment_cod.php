@@ -331,7 +331,7 @@ if (!empty($email) && $product) {
             ]
         ];
 
-        $mail->setFrom('omg191883@gmail.com', 'Fresh Grocery');
+        $mail->setFrom('workshopit26@gmail.com', 'Fresh Grocery');
         $mail->addAddress($email);
 
         $mail->isHTML(true);
